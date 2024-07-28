@@ -1,4 +1,10 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:graphql_flutter/graphql_flutter.dart';
+import 'package:intl/intl.dart';
+import 'package:todo/api/graphqlConfig.dart';
+import 'package:todo/screens/createTodo.dart';
+import 'package:todo/screens/viewTodo.dart';
 
 void main() {
   runApp(const MyApp());
@@ -6,96 +12,194 @@ void main() {
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
-
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
-      ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
-    );
+    return GraphQLProvider(
+        client: GraphQLConfiguration.clientToQuery(),
+        child: MaterialApp(
+          title: 'Todo App',
+          theme: ThemeData(
+            colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+            useMaterial3: true,
+          ),
+          home: const TodoList(),
+        ));
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  final String title;
+class TodoList extends StatefulWidget {
+  const TodoList({Key? key}) : super(key: key);
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  TodoListState createState() => TodoListState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+class TodoListState extends State<TodoList> {
+  String readTodos = """
+query {
+  tasks(sort:"createdAt:desc") {
+      data {
+        id
+        attributes {
+          Name
+          Description
+          Completed
+        }
+      }
+    }
+}""";
 
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
+  var colors = [
+    Colors.indigo,
+    Colors.green,
+    Colors.purple,
+    Colors.pinkAccent,
+    Colors.red,
+    Colors.black
+  ];
+
+  Random random = Random();
+  List<Map<String, dynamic>> todos = [];
+
+  randomColors() {
+    int randomNumber = random.nextInt(colors.length);
+    return colors[randomNumber];
+  }
+
+  onChange(b) {
+    return true;
   }
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
     return Scaffold(
-      appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text(
-              'You have pushed the button this many times:',
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+      body: Query(
+          options: QueryOptions(
+            document: gql(readTodos),
+            pollInterval: const Duration(seconds: 0),
+          ),
+          builder: (QueryResult result,
+              {VoidCallback? refetch, FetchMore? fetchMore}) {
+            if (result.hasException) {
+              return Text(result.exception.toString());
+            }
+
+            if (result.isLoading) {
+              return const Center(child: Text('Loading'));
+            }
+
+            Map<String, dynamic> todos = result.data?["tasks"];
+
+            return Scaffold(
+              backgroundColor: Colors.white,
+              body: Column(children: [
+                Container(
+                    alignment: Alignment.centerLeft,
+                    padding: const EdgeInsets.fromLTRB(8, 50, 0, 9),
+                    color: Colors.blue,
+                    child: const Text(
+                      "Todo",
+                      style: TextStyle(
+                          fontSize: 45,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white),
+                    )),
+                const SizedBox(
+                  height: 10,
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 3),
+                  child: ListView.builder(
+                    itemCount: todos["data"].length,
+                    shrinkWrap: true,
+                    itemBuilder: (context, index) {
+                      return GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => ViewTodo(
+                                    id: todos["data"][index]["id"],
+                                    refresh: () {
+                                      refetch!();
+                                    }),
+                              ),
+                            );
+                          },
+                          child: Container(
+                            margin: const EdgeInsets.fromLTRB(10, 0, 10, 10),
+                            padding: const EdgeInsets.fromLTRB(10, 0, 10, 10),
+                            decoration: BoxDecoration(
+                              borderRadius:
+                                  const BorderRadius.all(Radius.circular(7)),
+                              color: randomColors(),
+                            ),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Padding(
+                                        padding: const EdgeInsets.fromLTRB(
+                                            0, 6, 0, 6),
+                                        // child: Text('To do'),
+                                        child: Text(
+                                            todos['data'][index]["attributes"]
+                                                    ["Name"]
+                                                .toString(),
+                                            style: const TextStyle(
+                                                fontSize: 16,
+                                                color: Colors.white,
+                                                fontWeight: FontWeight.bold)),
+                                      ),
+                                      // Text(
+                                      //   DateFormat("yMMMEd")
+                                      //       .format(DateTime.parse(todos['data']
+                                      //                   [index]["attributes"]
+                                      //               ["createdAt"]
+                                      //           .toString()))
+                                      //       .toString(),
+                                      //   style: const TextStyle(
+                                      //       color: Colors.white),
+                                      // ),
+                                    ],
+                                  ),
+                                ),
+                                Checkbox(
+                                  value: todos["data"][index]["attributes"]
+                                      ["Completed"],
+                                  onChanged: onChange,
+                                  checkColor: Colors.white,
+                                  activeColor: Colors.white,
+                                )
+                              ],
+                            ),
+                          ));
+                    },
+                  ),
+                ),
+              ]),
+              floatingActionButton: FloatingActionButton(
+                foregroundColor: Colors.white,
+                backgroundColor: Colors.green,
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => CreateTodo(refresh: () {
+                        refetch!();
+                      }),
+                    ),
+                  );
+                },
+                tooltip: 'Add new todo',
+                child: const Icon(Icons.add),
+              ),
+            );
+          }),
     );
   }
 }

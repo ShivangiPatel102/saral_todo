@@ -330,8 +330,8 @@ class ViewTodoState extends State<ViewTodo> {
                                                   Text('Updating todo...')));
                                       runMutation({
                                         'id': id,
-                                        'name': myController.text,
-                                        'done': done
+                                        'Name': myController.text,
+                                        'Completed': done
                                       });
                                       setState(() {
                                         editMode = false;

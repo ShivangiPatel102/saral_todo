@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
+import 'package:todo/constants.dart';
 import '../api/graphQLConfig.dart';
 
-String addTodo = """
+class CreateTodo extends StatelessWidget {
+  final String addTodo = """
   mutation createTask(\$Name: String, \$Description: String, \$Completed: Boolean) {
     createTask(data: { Name: \$Name, Description: \$Description, Completed: \$Completed }) {
       data {
@@ -15,77 +17,104 @@ String addTodo = """
       }
     }
   }
-""";
+  """;
 
+  final TextEditingController nameController = TextEditingController();
+  final TextEditingController descriptionController = TextEditingController();
+  final VoidCallback? refresh;
 
-
-class CreateTodo extends StatelessWidget {
-  final myController = TextEditingController();
-  final refresh;
   CreateTodo({Key? key, this.refresh}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return GraphQLProvider(
-        client: GraphQLConfiguration.clientToQuery(),
-        child: Mutation(
-            options: MutationOptions(
-              document: gql(addTodo),
-              update: (GraphQLDataProxy cache, QueryResult? result) {
-                return cache;
-              },
-              onCompleted: (dynamic resultData) {
-                refresh!();
-                ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('New todo added.')));
-                Navigator.pop(context);
-              },
-            ),
-            builder: (
-              RunMutation runMutation,
-              QueryResult? result,
-            ) {
-              return Scaffold(
-                  appBar: AppBar(
-                    title: const Text("Create Todo"),
+      client: GraphQLConfiguration.clientToQuery(),
+      child: Mutation(
+        options: MutationOptions(
+          document: gql(addTodo),
+          update: (GraphQLDataProxy cache, QueryResult? result) {
+            return cache;
+          },
+          onCompleted: (dynamic resultData) {
+            if (refresh != null) refresh!();
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('New todo added.')),
+            );
+            Navigator.pop(context);
+          },
+        ),
+        builder: (
+          RunMutation runMutation,
+          QueryResult? result,
+        ) {
+          return Container(
+            color: const Color(0xff757575),
+            child: Container(
+              padding: const EdgeInsets.all(20.0),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.only(
+                  topRight: Radius.circular(20.0),
+                  topLeft: Radius.circular(20.0),
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  const Text(
+                    'Add Task',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 30.0,
+                      color: kPrimaryAppColor,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                  body: Column(children: [
-                    Container(
-                        alignment: Alignment.centerLeft,
-                        padding: const EdgeInsets.fromLTRB(10, 50, 10, 9),
-                        child: TextField(
-                          controller: myController,
-                          decoration: const InputDecoration(
-                              border: OutlineInputBorder(),
-                              hintText: 'Add todo'),
-                        )),
-                    Row(children: [
-                      Expanded(
-                          child: Padding(
-                              padding: const EdgeInsets.all(10),
-                              child: MaterialButton(
-                                onPressed: () {
-                                  runMutation({
-                                    'Name': myController.text,
-                                    'Completed': false
-                                  });
-
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                          content: Text('Adding new todo...')));
-                                },
-                                color: Colors.blue,
-                                padding: const EdgeInsets.all(17),
-                                child: const Text(
-                                  "Add",
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white,
-                                      fontSize: 20),
-                                ),
-                              )))
-                    ])
-                  ]));
-            }));
-    ;
+                  SizedBox(height: 30,),
+                  TextField(
+                    controller: nameController,
+                    autofocus: false,
+                    textAlign: TextAlign.center,
+                    decoration: const InputDecoration(
+                      hintText: 'Task name',
+                    ),
+                  ),
+                  const SizedBox(height: 20.0),
+                  TextField(
+                    controller: descriptionController,
+                    autofocus: false,
+                    textAlign: TextAlign.center,
+                    decoration: const InputDecoration(
+                      hintText: 'Task description',
+                    ),
+                  ),
+                  const SizedBox(height: 20.0),
+                  TextButton(
+                    onPressed: () {
+                      runMutation({
+                        'Name': nameController.text,
+                        'Description': descriptionController.text,
+                        'Completed': false,
+                      });
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Adding new todo...')),
+                      );
+                    },
+                    style: TextButton.styleFrom(
+                      backgroundColor: kPrimaryAppColor,
+                    ),
+                    child: const Text(
+                      'Add',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
   }
 }

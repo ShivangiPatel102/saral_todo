@@ -1,13 +1,11 @@
-import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
-import 'package:intl/intl.dart';
+import 'package:hive_flutter/adapters.dart';
 import 'package:todo/api/graphqlConfig.dart';
-import 'package:todo/screens/createTodo.dart';
 import 'package:todo/screens/homeScreen.dart';
-import 'package:todo/screens/viewTodo.dart';
 
-void main() {
+void main() async {
+   await Hive.initFlutter();
   runApp(const MyApp());
 }
 

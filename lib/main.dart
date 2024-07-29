@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:hive_flutter/adapters.dart';
 import 'package:todo/api/graphqlConfig.dart';
-import 'package:todo/screens/homeScreen.dart';
+import 'package:todo/screens/loginScreen/loginScreen.dart';
 
 void main() async {
    await Hive.initFlutter();
@@ -17,12 +17,13 @@ class MyApp extends StatelessWidget {
     return GraphQLProvider(
         client: GraphQLConfiguration.clientToQuery(),
         child: MaterialApp(
+          debugShowCheckedModeBanner: false,
           title: 'Todo App',
           theme: ThemeData(
             colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
             useMaterial3: true,
           ),
-          home: const HomeScreen(),
+          home:  LoginScreen.create(),
         ));
   }
 }

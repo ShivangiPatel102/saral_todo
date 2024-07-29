@@ -71,13 +71,28 @@ class CreateTodo extends StatelessWidget {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  SizedBox(height: 30,),
+                  const SizedBox(
+                    height: 30,
+                  ),
                   TextField(
                     controller: nameController,
                     autofocus: false,
+                    cursorColor: kPrimaryAppColor,
                     textAlign: TextAlign.center,
                     decoration: const InputDecoration(
                       hintText: 'Task name',
+                      hintStyle: TextStyle(
+                          color: kPrimaryAppColor), 
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(
+                            color:
+                                kPrimaryAppColor), 
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(
+                            color:
+                                kPrimaryAppColor), 
+                      ),
                     ),
                   ),
                   const SizedBox(height: 20.0),
@@ -85,8 +100,21 @@ class CreateTodo extends StatelessWidget {
                     controller: descriptionController,
                     autofocus: false,
                     textAlign: TextAlign.center,
+                    cursorColor: kPrimaryAppColor,
                     decoration: const InputDecoration(
                       hintText: 'Task description',
+                      hintStyle: const TextStyle(
+                          color: kPrimaryAppColor),
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(
+                            color:
+                                kPrimaryAppColor), 
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(
+                            color:
+                                kPrimaryAppColor), 
+                      ),
                     ),
                   ),
                   const SizedBox(height: 20.0),

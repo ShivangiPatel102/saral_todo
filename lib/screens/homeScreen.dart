@@ -58,7 +58,8 @@ query {
             }
 
             if (result.isLoading) {
-              return const Center(child: Text('Loading'));
+              return const Center(
+                  child: CircularProgressIndicator(color: kPrimaryAppColor));
             }
 
             Map<String, dynamic> todos = result.data?["tasks"];
@@ -71,7 +72,7 @@ query {
                     Container(
                       padding: const EdgeInsets.only(
                           top: 60.0, left: 30.0, right: 30.0, bottom: 30.0),
-                      child: Column(
+                      child: const Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: <Widget>[
                           //list icon
@@ -80,23 +81,22 @@ query {
                             radius: 30.0,
                             child: Icon(
                               Icons.list,
-                              color: Colors.indigo.shade800,
+                              color: kPrimaryAppColor,
                               size: 40.0,
                             ),
                           ),
                           //space
-                          const SizedBox(
+                          SizedBox(
                             height: 15.0,
                           ),
                           //Todoo title
-                          const Text(
-                            'To-doo',
+                          Text(
+                            'To-Do',
                             style: TextStyle(
                                 color: Colors.white,
                                 fontSize: 50.0,
                                 fontWeight: FontWeight.w700),
                           ),
-                         
                         ],
                       ),
                     ),
@@ -128,15 +128,14 @@ query {
                                     todos["data"][index]["attributes"];
                                 return TaskTile(
                                   id: todos["data"][index]["id"],
-                                  refresh: (){
+                                  refresh: () {
                                     refetch!();
                                   },
-                                  doublePressCallback: () => {
-                                    
-                                  },
+                                  doublePressCallback: () => {},
                                   isChecked: currentTodo["Completed"],
                                   taskTitle: currentTodo["Name"],
-                                  taskDescription: currentTodo["Description"] ?? '',
+                                  taskDescription:
+                                      currentTodo["Description"] ?? '',
                                   checkboxCallback: (bool? checkboxState) {
                                     if (checkboxState != null) {
                                       runMutation({
@@ -151,105 +150,17 @@ query {
                                       'Completed': !currentTodo["Completed"],
                                     });
                                   },
-                                  // doublePressCallback: () {
-
-                                  // },
                                 );
                               },
                             );
                           },
                         ),
-
-                        //   child: ListView.builder(
-                        //     itemCount: todos["data"].length,
-                        //     shrinkWrap: true,
-                        //     itemBuilder: (context, index) {
-                        //       return Mutation(
-                        //         options: MutationOptions(
-                        //           document: gql(updateTaskStatus),
-                        //           onCompleted: (dynamic resultData) {
-                        //             refetch!();
-                        //           },
-                        //         ),
-                        //         builder: (RunMutation runMutation,
-                        //             QueryResult? mutationResult) {
-                        //           return GestureDetector(
-                        //               onTap: () {
-                        //                 Navigator.push(
-                        //                   context,
-                        //                   MaterialPageRoute(
-                        //                     builder: (context) => ViewTodo(
-                        //                         id: todos["data"][index]["id"],
-                        //                         refresh: () {
-                        //                           refetch!();
-                        //                         }),
-                        //                   ),
-                        //                 );
-                        //               },
-                        //               child: Container(
-                        //                 margin: const EdgeInsets.fromLTRB(
-                        //                     10, 0, 10, 10),
-                        //                 padding: const EdgeInsets.fromLTRB(
-                        //                     10, 0, 10, 10),
-                        //                 decoration: const BoxDecoration(
-                        //                   borderRadius: BorderRadius.all(
-                        //                       Radius.circular(7)),
-                        //                   color: kPrimaryAppColor,
-                        //                 ),
-                        //                 child: Row(
-                        //                   children: [
-                        //                     Expanded(
-                        //                       child: Column(
-                        //                         crossAxisAlignment:
-                        //                             CrossAxisAlignment.start,
-                        //                         children: [
-                        //                           Padding(
-                        //                             padding:
-                        //                                 const EdgeInsets.fromLTRB(
-                        //                                     0, 6, 0, 6),
-                        //                             child: Text(
-                        //                                 todos['data'][index]
-                        //                                             ["attributes"]
-                        //                                         ["Name"]
-                        //                                     .toString(),
-                        //                                 style: const TextStyle(
-                        //                                     fontSize: 16,
-                        //                                     color: Colors.white,
-                        //                                     fontWeight:
-                        //                                         FontWeight.bold)),
-                        //                           ),
-                        //                         ],
-                        //                       ),
-                        //                     ),
-                        //                     Checkbox(
-                        //                       value: todos["data"][index]
-                        //                           ["attributes"]["Completed"],
-                        //                       onChanged: (bool? value) {
-                        //                         if (value != null) {
-                        //                           runMutation({
-                        //                             'id': todos["data"][index]
-                        //                                 ["id"],
-                        //                             'Completed': value,
-                        //                           });
-                        //                         }
-                        //                       },
-                        //                       checkColor: Colors.white,
-                        //                       activeColor: Colors.white,
-                        //                     ),
-                        //                   ],
-                        //                 ),
-                        //               ));
-                        //         },
-                        //       );
-                        //     },
-                        //   ),
                       ),
                     ),
                   ]),
               floatingActionButton: FloatingActionButton(
                 backgroundColor: kPrimaryAppColor,
                 onPressed: () {
-                 
                   showModalBottomSheet(
                     context: context,
                     isScrollControlled: true,
